@@ -2,7 +2,7 @@ import UIKit
 
 // MARK: - subview layouting
 extension ColorPickerView {
-    override func layoutSubviews() {
+    public override func layoutSubviews() {
         guard !animating else {
             return
         }
@@ -18,8 +18,9 @@ extension ColorPickerView {
         controlCircleRadius = bounds.height / 2 - circleGradientMid
         
         positionColorSelectionThumbControlView()
+        layoutLabels()
         layoutSaturationControl()
-        layoutBrightnessControl()
+        layoutLightnessControl()
         
         self.preview = defaultPreview
     }
@@ -79,12 +80,31 @@ extension ColorPickerView {
         saturationLayer.frame = topRect
     }
     
-    private func layoutBrightnessControl() {
+    private func layoutLabels() {
+        let labels = [hueLabel, saturationLabel, lightnessLabel]
+        
+        let stackView = UIStackView()
+        stackView.distribution = .fillEqually
+        labels.forEach { (label) in
+            label.textColor = .darkGray
+            label.textAlignment = .center
+            stackView.addArrangedSubview(label)
+        }
+        stackView.frame = CGRect(
+            x: 24,
+            y: saturationLabel.frame.origin.y - 65,
+            width: bounds.width - 48,
+            height: 40
+        )
+        addSubview(stackView)
+    }
+    
+    private func layoutLightnessControl() {
         let arcStartAngle = rad(from: 45)
         
         // position thumb view
-        let brightnessAngle = calculateBrightnessAngle(hsbColor.brightness)
-        positionBrightnessControl(hsbColor.brightness, brightnessAngle, false)
+        let brightnessAngle = calculateBrightnessAngle(hsbColor.lightness)
+        positionBrightnessControl(hsbColor.lightness, brightnessAngle, false)
         
         // shape path mask layer
         let bottomPath = UIBezierPath(arcCenter: bounds.center,

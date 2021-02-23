@@ -10,15 +10,6 @@ class ViewController: UINavigationController, ColorPickerResultDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        let colorPickerStoryboard = UIStoryboard(name: "ColorPicker", bundle: Bundle(for: ColorPickerViewController.self))
-        
-        if let viewController = colorPickerStoryboard.instantiateInitialViewController(),
-            let colorPickerViewController = viewController as? ColorPickerViewController {
-            colorPickerViewController.colorDelegate = self
-            
-            self.pushViewController(colorPickerViewController, animated: false)
-        }
     }
 }
 

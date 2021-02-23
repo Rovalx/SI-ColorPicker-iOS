@@ -1,7 +1,7 @@
 import UIKit
 import CoreGraphics
 
-class ColorPickerView: UIView {
+public class ColorPickerView: UIView {
     
     // MARK: - fixed values
     private let imagePointSize: CGFloat = 300
@@ -16,7 +16,7 @@ class ColorPickerView: UIView {
     
     // MARK: color selection circle
     internal var colorGradientImageView = UIImageView(image: UIImage(named: "hsv_radial_gradient",
-                                                                     in: Bundle(for: ColorPickerViewController.self),
+                                                                     in: Bundle(for: ColorPickerView.self),
                                                                      compatibleWith: nil))
     internal var colorSelectionThumbView = UIView()
     internal var colorSelectionThumbColorLayer = CAShapeLayer()
@@ -30,6 +30,11 @@ class ColorPickerView: UIView {
     internal var brightnessLayer = CAGradientLayer()
     internal var brightnessMaskLayer = CAShapeLayer()
     internal var brightnessThumbView = UIView()
+    
+    // MARK: labels
+    internal var hueLabel = UILabel()
+    internal var saturationLabel = UILabel()
+    internal var lightnessLabel = UILabel()
 
     // MARK: touch control
     internal var touchProcessor: ColorPickerTouchProcessor! = nil
@@ -55,9 +60,9 @@ class ColorPickerView: UIView {
     }
     
     // MARK: - color values
-    internal var hsbColor: HSBColor = HSBColor()
+    internal var hsbColor: HSLColor = HSLColor()
     
-    var color: UIColor {
+    public var color: UIColor {
         get {
             return hsbColor.uiColor
         }
@@ -73,13 +78,13 @@ class ColorPickerView: UIView {
             let saturationPositionAngle = calculateSaturationAngle(hsbColor.saturation)
             positionSaturationControl(hsbColor.saturation, saturationPositionAngle, false)
             
-            let brightnessPositionAngle = calculateBrightnessAngle(hsbColor.brightness)
-            positionBrightnessControl(hsbColor.brightness, brightnessPositionAngle, false)
+            let brightnessPositionAngle = calculateBrightnessAngle(hsbColor.lightness)
+            positionBrightnessControl(hsbColor.lightness, brightnessPositionAngle, false)
         }
     }
     
-    var colorUpdated: ((UIColor) -> Void)?
-    var defaultPreview: Bool = false
+    public var colorUpdated: ((UIColor) -> Void)?
+    public var defaultPreview: Bool = false
     
     // MARK: - ui flags
     internal var animating: Bool = false
@@ -111,7 +116,6 @@ class ColorPickerView: UIView {
         touchProcessor.saturationCallback = saturationSelection(_:_:_:)
         touchProcessor.colorSelectionCallback = colorSelection(_:_:)
         touchProcessor.brightnessCallback = brightnessSelection(_:_:_:)
-        touchProcessor.previewCallback = togglePreview
     }
     
     private func config() {
@@ -122,7 +126,7 @@ class ColorPickerView: UIView {
         initBrightnessControl()
     }
     
-    override func draw(_ rect: CGRect) {
+    public override func draw(_ rect: CGRect) {
         super.draw(rect)
         
         let connectionLine = UIBezierPath()
@@ -145,18 +149,23 @@ class ColorPickerView: UIView {
         colorPreviewLayer.fillColor = color.cgColor
         magnificationImage.tintColor = color.contrastFontColor
         
-        saturationLayer.colors?[1] = baseColor.cgColor
-        brightnessLayer.colors?[1] = baseColor.cgColor
+        saturationLayer.colors?[0] = hsbColor.saturated(0).cgColor
+        saturationLayer.colors?[1] = hsbColor.saturated(1).cgColor
+        brightnessLayer.colors?[1] = hsbColor.lightness(0.5).cgColor
         
         CATransaction.commit()
         
         colorUpdated?(color)
+        
+        hueLabel.text = "H: \(Int(hsbColor.hue * 360))"
+        saturationLabel.text = "S: \(Int(hsbColor.saturation * 100))"
+        lightnessLabel.text = "L: \(Int(hsbColor.lightness * 100))"
     }
 }
 
 // MARK: - touch processing
 extension ColorPickerView {
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else {
             return
         }
@@ -164,7 +173,7 @@ extension ColorPickerView {
         touchProcessor.touchBegin(touch)
     }
     
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+    public override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else {
             return
         }
@@ -172,7 +181,7 @@ extension ColorPickerView {
         touchProcessor.touchMoved(touch)
     }
     
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else {
             return
         }
@@ -198,15 +207,15 @@ extension ColorPickerView {
     
     internal func brightnessSelection(_ brightness: CGFloat, _ angle: CGFloat, _ moving: Bool) {
         if brightness <= 0 {
-            hsbColor.brightness = 0
+            hsbColor.lightness = 0
         } else if brightness >= 1 {
-            hsbColor.brightness = 1
+            hsbColor.lightness = 1
         } else {
-            hsbColor.brightness = brightness
+            hsbColor.lightness = brightness
         }
         
         updateColor(moving)
-        positionBrightnessControl(hsbColor.brightness, angle, moving)
+        positionBrightnessControl(hsbColor.lightness, angle, moving)
     }
 }
 
@@ -280,24 +289,11 @@ extension ColorPickerView {
         
         self.brightnessThumbView.center = CGPoint(x: thumbX, y: thumbY)
     }
-    
-    internal func togglePreview() {
-        let scale = self.preview ? 1 : colorGradientImageView.bounds.width / colorPreviewView.frame.width
-        self.animating = true
-        self.preview.toggle()
-        
-        UIView.animate(withDuration: 0.25, animations: {
-            UIView.setAnimationCurve(UIView.AnimationCurve.easeInOut)
-            self.colorPreviewView.transform = CGAffineTransform(scaleX: scale, y: scale)
-            self.colorPreviewLayer.lineWidth = 2 / scale
-            self.colorSelectionThumbView.alpha = self.preview ? 0 : 1
-        })
-    }
 }
 
 // MARK: - layer delegate override
 extension ColorPickerView {
-    override func action(for layer: CALayer, forKey event: String) -> CAAction? {
+    public override func action(for layer: CALayer, forKey event: String) -> CAAction? {
         return nil
     }
 }

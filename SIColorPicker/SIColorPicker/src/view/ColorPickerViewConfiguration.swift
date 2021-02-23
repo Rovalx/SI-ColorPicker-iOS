@@ -35,7 +35,7 @@ extension ColorPickerView {
     
     internal func initColorPreviewView() {
         // actual view
-        colorPreviewView.bounds = CGRect(x: 0, y: 0, width: 30, height: 30)
+        colorPreviewView.bounds = CGRect(x: 0, y: 0, width: 120, height: 120)
         colorPreviewView.backgroundColor = UIColor.clear
         
         // shape + layer
@@ -103,7 +103,7 @@ extension ColorPickerView {
         // gradient layer
         brightnessLayer.startPoint = CGPoint(x: 0, y: 0.5)
         brightnessLayer.endPoint = CGPoint(x: 1, y: 0.5)
-        brightnessLayer.colors = [UIColor.black.cgColor, UIColor.red.cgColor]
+        brightnessLayer.colors = [UIColor.black.cgColor, UIColor.red.cgColor, UIColor.white.cgColor]
         brightnessLayer.mask = brightnessMaskLayer
         
         // shape path mask layer
