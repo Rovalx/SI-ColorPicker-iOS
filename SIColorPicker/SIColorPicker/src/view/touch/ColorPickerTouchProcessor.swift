@@ -29,9 +29,9 @@ class ColorPickerTouchProcessor {
     
     // MARK: - registerd functions
     var previewCallback: (() -> Void)?
-    var colorSelectionCallback: ((_ angle: CGFloat, _ moving: Bool) -> Void)?
-    var saturationCallback: ((_ saturation: CGFloat, _ angle: CGFloat, _ moving: Bool) -> Void)?
-    var brightnessCallback: ((_ brightness: CGFloat, _ angle: CGFloat, _ moving: Bool) -> Void)?
+    var colorSelectionCallback: ((_ angle: CGFloat, _ moving: Bool, _ finished: Bool) -> Void)?
+    var saturationCallback: ((_ saturation: CGFloat, _ angle: CGFloat, _ moving: Bool, _ finished: Bool) -> Void)?
+    var brightnessCallback: ((_ brightness: CGFloat, _ angle: CGFloat, _ moving: Bool, _ finished: Bool) -> Void)?
     var hexFieldCallback: (() -> Void)?
     
     // MARK: - touch functions
@@ -44,11 +44,11 @@ class ColorPickerTouchProcessor {
     }
     
     func touchMoved(_ touch: UITouch) {
-        consumeMove(touchPoint: touch.location(in: parentView))
+        consumeMove(touchPoint: touch.location(in: parentView), finished: false)
     }
     
     func touchEnd(_ touch: UITouch) {
-        consumeMove(touchPoint: touch.location(in: parentView))
+        consumeMove(touchPoint: touch.location(in: parentView), finished: true)
         touchPosition = nil
     }
     
@@ -82,17 +82,17 @@ class ColorPickerTouchProcessor {
             hexFieldCallback?()
             break
         case .colorCircle(let angle):
-            colorSelectionCallback?(angle, false)
+            colorSelectionCallback?(angle, false, false)
             break
         case .controlCircle(let mode):
             switch mode {
             case .saturation(let angle):
                 let saturation = calculateSaturationValue(for: angle)
-                saturationCallback?(saturation, angle + piHalf, false)
+                saturationCallback?(saturation, angle + piHalf, false, false)
                 break
             case.brightness(let angle):
                 let brightness = calculateBrightnessValue(for: angle)
-                brightnessCallback?(brightness, angle + piHalf, false)
+                brightnessCallback?(brightness, angle + piHalf, false, false)
                 break
             default:
                 break
@@ -102,7 +102,7 @@ class ColorPickerTouchProcessor {
         }
     }
     
-    private func consumeMove(touchPoint: CGPoint) {
+    private func consumeMove(touchPoint: CGPoint, finished: Bool) {
         guard let touchPosition = touchPosition else {
             return
         }
@@ -115,11 +115,11 @@ class ColorPickerTouchProcessor {
             switch mode {
             case .saturation:
                 let saturation = calculateSaturationValue(for: angleRadians)
-                saturationCallback?(saturation, angleRadians + piHalf, true)
+                saturationCallback?(saturation, angleRadians + piHalf, true, finished)
                 break
             case .brightness:
                 let brightness = calculateBrightnessValue(for: angleRadians)
-                brightnessCallback?(brightness, angleRadians + piHalf, true)
+                brightnessCallback?(brightness, angleRadians + piHalf, true, finished)
                 break
             case .none:
                 break
@@ -127,7 +127,7 @@ class ColorPickerTouchProcessor {
             
             break
         case .colorCircle:
-            colorSelectionCallback?(angleRadians, true)
+            colorSelectionCallback?(angleRadians, true, finished)
             break
         default:
             break

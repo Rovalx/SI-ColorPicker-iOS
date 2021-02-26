@@ -83,7 +83,7 @@ public class ColorPickerView: UIView {
         }
     }
     
-    public var colorUpdated: ((UIColor) -> Void)?
+    public var colorUpdated: ((UIColor, Bool) -> Void)?
     public var defaultPreview: Bool = false
     
     // MARK: - ui flags
@@ -113,9 +113,9 @@ public class ColorPickerView: UIView {
     
     private func initTouchProcessor() {
         touchProcessor = ColorPickerTouchProcessor(view: self)
-        touchProcessor.saturationCallback = saturationSelection(_:_:_:)
-        touchProcessor.colorSelectionCallback = colorSelection(_:_:)
-        touchProcessor.brightnessCallback = brightnessSelection(_:_:_:)
+        touchProcessor.saturationCallback = saturationSelection(_:_:_:_:)
+        touchProcessor.colorSelectionCallback = colorSelection(_:_:_:)
+        touchProcessor.brightnessCallback = brightnessSelection(_:_:_:_:)
     }
     
     private func config() {
@@ -137,7 +137,7 @@ public class ColorPickerView: UIView {
         connectionLine.stroke()
     }
     
-    private func updateColor(_ animate: Bool) {
+    private func updateColor(_ animate: Bool, finished: Bool = false) {
         let color = hsbColor.uiColor
         let baseColor = hsbColor.baseColor
         
@@ -155,7 +155,7 @@ public class ColorPickerView: UIView {
         
         CATransaction.commit()
         
-        colorUpdated?(color)
+        colorUpdated?(color, finished)
         
         hueLabel.text = "H: \(Int(hsbColor.hue * 360))"
         saturationLabel.text = "S: \(Int(hsbColor.saturation * 100))"
@@ -189,23 +189,23 @@ extension ColorPickerView {
         touchProcessor.touchEnd(touch)
     }
     
-    internal func colorSelection(_ value: CGFloat, _ moving: Bool) {
+    internal func colorSelection(_ value: CGFloat, _ moving: Bool, _ finished: Bool) {
         guard !self.preview else {
             return
         }
         
         self.hsbColor.hue = 1 - degrees(from: value) / 360.0
-        updateColor(moving)
+        updateColor(moving, finished: finished)
         positionColorControl(value, moving)
     }
     
-    internal func saturationSelection(_ saturation: CGFloat, _ angle: CGFloat, _ moving: Bool) {
+    internal func saturationSelection(_ saturation: CGFloat, _ angle: CGFloat, _ moving: Bool, _ finished: Bool) {
         self.hsbColor.saturation = saturation
-        updateColor(moving)
+        updateColor(moving, finished: finished)
         positionSaturationControl(saturation, angle, moving)
     }
     
-    internal func brightnessSelection(_ brightness: CGFloat, _ angle: CGFloat, _ moving: Bool) {
+    internal func brightnessSelection(_ brightness: CGFloat, _ angle: CGFloat, _ moving: Bool, _ finished: Bool) {
         if brightness <= 0 {
             hsbColor.lightness = 0
         } else if brightness >= 1 {
@@ -214,7 +214,7 @@ extension ColorPickerView {
             hsbColor.lightness = brightness
         }
         
-        updateColor(moving)
+        updateColor(moving, finished: finished)
         positionBrightnessControl(hsbColor.lightness, angle, moving)
     }
 }

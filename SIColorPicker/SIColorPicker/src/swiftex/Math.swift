@@ -1,4 +1,4 @@
-import Foundation
+import UIKit
 
 func degrees(from rad: CGFloat) -> CGFloat {
     return rad * 180 / .pi

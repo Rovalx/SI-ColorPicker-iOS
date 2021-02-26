@@ -1,4 +1,4 @@
-import Foundation
+import UIKit
 
 enum TouchPosition {
     case controlCircle(mode: TouchControlMode)
